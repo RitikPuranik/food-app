@@ -8,32 +8,47 @@ const FoodPartnerRegister = () => {
 
   const navigate = useNavigate();
   
-  const handleSubmit = (e) => { 
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const businessName = e.target.businessName.value;
-    const contactName = e.target.contactName.value;
-    const phone = e.target.phone.value;
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const address = e.target.address.value;
+  const businessName = e.target.businessName.value.trim();
+  const contactName = e.target.contactName.value.trim();
+  const phone = e.target.phone.value.trim();
+  const email = e.target.email.value.trim();
+  const password = e.target.password.value;
+  const address = e.target.address.value.trim();
 
-    axios.post("http://localhost:3000/api/auth/food-partner/register", {
-      name:businessName,
-      contactName,
-      phone,
-      email,
-      password,
-      address
-    }, { withCredentials: true })
-      .then(response => {
-        console.log(response.data);
-        navigate("/create-food"); // Redirect to create food page after successful registration
-      })
-      .catch(error => {
-        console.error("There was an error registering!", error);
-      });
-  };
+  if (!businessName || !contactName || !phone || !email || !password || !address) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  if (!/^[6-9]\d{9}$/.test(phone)) {
+    alert("Please enter a valid 10-digit phone number");
+    return;
+  }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    alert("Please enter a valid email");
+    return;
+  }
+
+
+  try {
+    const response = await axios.post(
+      "http://localhost:3000/api/auth/food-partner/register",
+      { name: businessName, contactName, phone, email, password, address },
+      { withCredentials: true }
+    );
+
+    console.log(response.data);
+    alert("Partner registered successfully!");
+    navigate("/create-food");
+  } catch (error) {
+    console.error("Registration error:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Registration failed. Try again.");
+  }
+};
+
 
   return (
     <div className="auth-page-wrapper">

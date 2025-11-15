@@ -13,12 +13,22 @@ const FoodPartnerLogin = () => {
     const email = e.target.email.value;
     const password = e.target.password.value;
 
-    const response = await axios.post("http://localhost:3000/api/auth/food-partner/login", {
-      email,
-      password
-    }, { withCredentials: true });
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/food-partner/login",
+        { email, password },
+        { withCredentials: true }
+      );
 
-    console.log(response.data);
+      console.log(response.data);
+      navigate("/create-food");
+    } catch (error) {
+      console.error("Login failed:", error.response?.data || error.message);
+      alert(error.response?.data?.message || "Login failed. Please try again.");
+    }
+
+
+    // console.log(response.data);
 
     navigate("/create-food"); // Redirect to create food page after login
 

@@ -16,17 +16,36 @@ const UserRegister = () => {
         const email = e.target.email.value;
         const password = e.target.password.value;
 
+        if (!firstName || !lastName || !email || !password) {
+            alert("All fields are required");
+            return;
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            alert("Please enter a valid email address");
+            return;
+        }
 
-        const response = await axios.post("http://localhost:3000/api/auth/user/register", {
-            fullName: firstName + " " + lastName,
-            email,
-            password
-        },
-        {
-            withCredentials: true
-        })
 
-        console.log(response.data);
+        try {
+            const response = await axios.post(
+                "http://localhost:3000/api/auth/user/register",
+                {
+                fullName: firstName + " " + lastName,
+                email,
+                password
+                },
+                { withCredentials: true }
+            );
+
+            console.log(response.data);
+            alert("Registration successful!");
+            navigate("/");
+            } 
+            catch (error) {
+                console.error("Registration failed:", error.response?.data || error.message);
+                alert(error.response?.data?.message || "Registration failed. Try again.");
+            }
+
 
         navigate("/")
 

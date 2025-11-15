@@ -8,21 +8,32 @@ const UserLogin = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const email = e.target.email.value;
-    const password = e.target.password.value;
+  const email = e.target.email.value;
+  const password = e.target.password.value;
 
-    const response = await axios.post("http://localhost:3000/api/auth/user/login", {
-      email,
-      password
-    }, { withCredentials: true });
+  if (!email || !password) {
+    alert("Please fill in both fields");
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      "http://localhost:3000/api/auth/user/login",
+      { email, password },
+      { withCredentials: true }
+    );
 
     console.log(response.data);
+    alert("Login successful!");
+    navigate("/");
+  } catch (error) {
+    console.error("Login failed:", error.response?.data || error.message);
+    alert(error.response?.data?.message || "Invalid email or password");
+  }
+};
 
-    navigate("/"); // Redirect to home after login
-
-  };
 
   return (
     <div className="auth-page-wrapper">

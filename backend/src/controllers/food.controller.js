@@ -2,7 +2,9 @@ const foodModel = require('../models/food.model');
 const storageService = require('../services/storage.service');
 const likeModel = require("../models/likes.model")
 const saveModel = require("../models/save.model")
-const { v4: uuid } = require("uuid")
+const commentModel = require("../models/comment.model");
+const { v4: uuid } = require("uuid");
+const { get } = require('mongoose');
 
 
 async function createFood(req, res) {
@@ -129,11 +131,71 @@ async function getSaveFood(req, res) {
 
 }
 
+async function addComment(req, res) {
+    const { foodId, comment } = req.body;
+    const user = req.user;
+
+    if (!comment || comment.trim() === "") {
+        return res.status(400).json({ message: "Comment cannot be empty" });
+    }
+
+    const newComment = await commentModel.create({
+        food: foodId,
+        user: user._id,
+        comment
+    });
+
+    res.status(201).json({
+        message: "Comment added successfully",
+        comment: newComment
+    });
+}
+
+async function getComments(req, res) {
+    const { foodId } = req.params;
+
+    const comments = await commentModel.find({ food: foodId })
+        .populate("user", "fullName email")
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({
+        message: "Comments fetched successfully",
+        comments
+    });
+}
+
+
+async function deleteComment(req, res) {
+    const { commentId } = req.params;
+    const user = req.user;
+
+    const comment = await commentModel.findById(commentId);
+
+    if (!comment) {
+        return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (comment.user.toString() !== user._id.toString()) {
+        return res.status(403).json({ message: "Not authorized to delete this comment" });
+    }
+
+    await commentModel.findByIdAndDelete(commentId);
+
+    res.status(200).json({
+        message: "Comment deleted successfully"
+    });
+}
+
+
+
 
 module.exports = {
     createFood,
     getFoodItems,
     likeFood,
     saveFood,
-    getSaveFood
+    getSaveFood,
+    addComment,
+    getComments,
+    deleteComment
 }

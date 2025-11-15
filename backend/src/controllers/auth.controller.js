@@ -5,41 +5,51 @@ const jwt = require('jsonwebtoken');
 
 async function registerUser(req, res) {
 
-    const { fullName, email, password } = req.body;
+    try {
+        const { fullName, email, password } = req.body;
 
-    const isUserAlreadyExists = await userModel.findOne({
-        email
-    })
+        if (!fullName || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+        }
 
-    if (isUserAlreadyExists) {
-        return res.status(400).json({
-            message: "User already exists"
-        })
-    }
+        const isUserAlreadyExists = await userModel.findOne({ email });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+        if (isUserAlreadyExists) {
+        return res.status(400).json({ message: "User already exists" });
+        }
 
-    const user = await userModel.create({
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await userModel.create({
         fullName,
         email,
-        password: hashedPassword
-    })
+        password: hashedPassword,
+        });
 
-    const token = jwt.sign({
-        id: user._id,
-    }, process.env.JWT_SECRET)
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+        });
 
-    res.cookie("token", token)
+        // ✅ Secure cookie setup
+        res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // use HTTPS in production
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
 
-    res.status(201).json({
-        message: "User registered successfully",
-        user: {
-            _id: user._id,
-            email: user.email,
-            fullName: user.fullName
-        }
-    })
-
+        res.status(201).json({
+            message: "User registered successfully",
+            user: {
+                _id: user._id,
+                email: user.email,
+                fullName: user.fullName,
+            },
+        });
+    } catch (error) {
+        console.error("Register Error:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
 }
 
 async function loginUser(req, res) {
@@ -72,6 +82,7 @@ async function loginUser(req, res) {
 
     res.status(200).json({
         message: "User logged in successfully",
+        token: token,
         user: {
             _id: user._id,
             email: user.email,

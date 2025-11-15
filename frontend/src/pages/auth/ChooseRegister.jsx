@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-// import '../../styles/choose-auth.css';
+import '../../styles/auth-shared.css';
 
 const ChooseRegister = () => {
   return (

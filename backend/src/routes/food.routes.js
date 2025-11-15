@@ -40,5 +40,21 @@ router.get('/save',
 )
 
 
+router.post("/comment",
+    authMiddleware.authUserMiddleware,
+    foodController.addComment
+);
+
+router.get("/:foodId/comments",
+    authMiddleware.authUserMiddleware,
+    foodController.getComments
+);
+
+router.delete("/comment/:commentId",
+    authMiddleware.authUserMiddleware,
+    foodController.deleteComment
+);
+
+
 
 module.exports = router
