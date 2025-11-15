@@ -186,7 +186,33 @@ async function deleteComment(req, res) {
     });
 }
 
+async function replyToComment(req, res) {
+    try {
+        const { parentCommentId } = req.params;
+        const { comment } = req.body;
+        const userId = req.user._id;
 
+        const parent = await commentModel.findById(parentCommentId);
+        if (!parent) {
+            return res.status(404).json({ message: "Parent comment not found" });
+        }
+
+        const reply = await commentModel.create({
+            user: userId,
+            food: parent.food,  
+            comment,
+            parentComment: parentCommentId
+        });
+
+        res.status(201).json({
+            message: "Reply added successfully",
+            reply
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
 
 
 module.exports = {
@@ -197,5 +223,6 @@ module.exports = {
     getSaveFood,
     addComment,
     getComments,
-    deleteComment
+    deleteComment,
+    replyToComment
 }

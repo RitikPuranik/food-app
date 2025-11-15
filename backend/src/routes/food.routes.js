@@ -14,31 +14,30 @@ const upload = multer({
 router.post('/',
     authMiddleware.authFoodPartnerMiddleware,
     upload.single("mama"),
-    foodController.createFood)
+    foodController.createFood
+)
 
 
 /* GET /api/food/ [protected] */
 router.get("/",
     authMiddleware.authUserMiddleware,
-    foodController.getFoodItems)
-
+    foodController.getFoodItems
+)
 
 router.post('/like',
     authMiddleware.authUserMiddleware,
-    foodController.likeFood)
-
+    foodController.likeFood
+)
 
 router.post('/save',
     authMiddleware.authUserMiddleware,
     foodController.saveFood
 )
 
-
 router.get('/save',
     authMiddleware.authUserMiddleware,
     foodController.getSaveFood
 )
-
 
 router.post("/comment",
     authMiddleware.authUserMiddleware,
@@ -55,6 +54,10 @@ router.delete("/comment/:commentId",
     foodController.deleteComment
 );
 
+router.post("/comment/:parentCommentId/reply",
+    authMiddleware.authUserMiddleware,
+    foodController.replyToComment
+);
 
 
 module.exports = router

@@ -14,7 +14,13 @@ const commentSchema = new mongoose.Schema({
     comment: {
         type: String,
         required: true,
+    },
+    parentComment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "comment",
+        default: null
     }
+
 }, {
     timestamps: true
 });
