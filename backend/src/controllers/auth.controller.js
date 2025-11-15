@@ -30,12 +30,11 @@ async function registerUser(req, res) {
         expiresIn: "7d",
         });
 
-        // ✅ Secure cookie setup
         res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // use HTTPS in production
+        secure: process.env.NODE_ENV === "production", 
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
         });
 
         res.status(201).json({
@@ -46,7 +45,8 @@ async function registerUser(req, res) {
                 fullName: user.fullName,
             },
         });
-    } catch (error) {
+    } 
+    catch (error) {
         console.error("Register Error:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
@@ -56,9 +56,7 @@ async function loginUser(req, res) {
 
     const { email, password } = req.body;
 
-    const user = await userModel.findOne({
-        email
-    })
+    const user = await userModel.findOne({ email })
 
     if (!user) {
         return res.status(400).json({
@@ -98,14 +96,11 @@ function logoutUser(req, res) {
     });
 }
 
-
 async function registerFoodPartner(req, res) {
 
     const { name, email, password, phone, address, contactName } = req.body;
 
-    const isAccountAlreadyExists = await foodPartnerModel.findOne({
-        email
-    })
+    const isAccountAlreadyExists = await foodPartnerModel.findOne({ email })
 
     if (isAccountAlreadyExists) {
         return res.status(400).json({
@@ -141,16 +136,13 @@ async function registerFoodPartner(req, res) {
             phone: foodPartner.phone
         }
     })
-
 }
 
 async function loginFoodPartner(req, res) {
 
     const { email, password } = req.body;
 
-    const foodPartner = await foodPartnerModel.findOne({
-        email
-    })
+    const foodPartner = await foodPartnerModel.findOne({ email })
 
     if (!foodPartner) {
         return res.status(400).json({

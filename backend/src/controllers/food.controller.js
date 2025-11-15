@@ -6,6 +6,15 @@ const commentModel = require("../models/comment.model");
 const { v4: uuid } = require("uuid");
 const { get } = require('mongoose');
 
+async function deleteCommentRecursive(commentId) {
+    const replies = await commentModel.find({ parentComment: commentId });
+
+    for (let reply of replies) {
+        await deleteCommentRecursive(reply._id);
+    }
+
+    await commentModel.findByIdAndDelete(commentId);
+}
 
 async function createFood(req, res) {
     const fileUploadResult = await storageService.uploadFile(req.file.buffer, uuid())
@@ -31,7 +40,6 @@ async function getFoodItems(req, res) {
         foodItems
     })
 }
-
 
 async function likeFood(req, res) {
     const { foodId } = req.body;
@@ -152,18 +160,39 @@ async function addComment(req, res) {
 }
 
 async function getComments(req, res) {
-    const { foodId } = req.params;
+    try {
+        const { foodId } = req.params;
 
-    const comments = await commentModel.find({ food: foodId })
-        .populate("user", "fullName email")
-        .sort({ createdAt: -1 });
+        const allComments = await commentModel
+            .find({ food: foodId })
+            .populate("user", "fullName email")
+            .sort({ createdAt: 1 })
+            .lean();
 
-    res.status(200).json({
-        message: "Comments fetched successfully",
-        comments
-    });
+        function buildTree(parentId = null) {
+            return allComments
+                .filter(c => {
+                    const parent = c.parentComment ? String(c.parentComment) : null;
+                    const target = parentId ? String(parentId) : null;
+                    return parent === target;
+                })
+                .map(c => ({
+                    ...c,
+                    replies: buildTree(c._id)
+                }));
+        }
+
+        const commentTree = buildTree(null);
+
+        res.status(200).json({
+            message: "Comments fetched successfully",
+            comments: commentTree
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 }
-
 
 async function deleteComment(req, res) {
     const { commentId } = req.params;
@@ -179,10 +208,10 @@ async function deleteComment(req, res) {
         return res.status(403).json({ message: "Not authorized to delete this comment" });
     }
 
-    await commentModel.findByIdAndDelete(commentId);
+    await deleteCommentRecursive(commentId);
 
     res.status(200).json({
-        message: "Comment deleted successfully"
+        message: "Comment and all replies deleted successfully"
     });
 }
 
@@ -224,5 +253,6 @@ module.exports = {
     addComment,
     getComments,
     deleteComment,
+    deleteCommentRecursive,
     replyToComment
 }
